@@ -2,6 +2,8 @@
 
 多平台知识萃取 Agent — 从信息洪流中捕获决策级信号，写入 Obsidian，推送 Telegram。
 
+[English version](README_EN.md)
+
 ---
 
 ## 为什么造这个轮子
