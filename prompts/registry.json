@@ -1,0 +1,52 @@
+{
+  "active_bundle": "v2_stable_cn",
+  "parallel_test_bundles": [
+    "primary_market_v1",
+    "rimbo_source_scored_v3",
+    "v2_legacy",
+    "v2_stable_cn"
+  ],
+  "roles": [
+    "scoring",
+    "extraction",
+    "telegram_brief"
+  ],
+  "bundles": {
+    "primary_market_v1": {
+      "label": "Primary Market V1",
+      "description": "V3 first primary-market investor prompt set. Scoring and extraction are versioned separately from Telegram formatting.",
+      "roles": {
+        "scoring": "prompts/versions/primary_market_v1/scoring.md",
+        "extraction": "prompts/versions/primary_market_v1/extraction.md",
+        "telegram_brief": "prompts/telegram_brief.md"
+      }
+    },
+    "v2_legacy": {
+      "label": "V2 Legacy Baseline",
+      "description": "Unmodified V2 screening and extraction prompts for baseline comparison only.",
+      "roles": {
+        "scoring": "prompts/versions/v2_legacy/scoring.md",
+        "extraction": "prompts/versions/v2_legacy/extraction.md",
+        "telegram_brief": "prompts/telegram_brief.md"
+      }
+    },
+    "v2_stable_cn": {
+      "label": "V2 Stable Chinese",
+      "description": "Production-oriented V2 stable screening/extraction style adapted to the V3 parser contract, with source scoring, content compression, and Chinese-first Telegram formatting.",
+      "roles": {
+        "scoring": "prompts/versions/v2_stable_cn/scoring.md",
+        "extraction": "prompts/versions/v2_stable_cn/extraction.md",
+        "telegram_brief": "prompts/telegram_brief.md"
+      }
+    },
+    "rimbo_source_scored_v3": {
+      "label": "Rimbo Source-Scored V3",
+      "description": "Source-tier/D1-D5 aware V3 prompt bundle with content compression and source-score fields for Rimbo-style trust evaluation.",
+      "roles": {
+        "scoring": "prompts/versions/rimbo_source_scored_v3/scoring.md",
+        "extraction": "prompts/versions/rimbo_source_scored_v3/extraction.md",
+        "telegram_brief": "prompts/telegram_brief.md"
+      }
+    }
+  }
+}
