@@ -47,6 +47,7 @@ class Pipeline:
         prompt_registry: PromptRegistry | None = None,
         staging_root: Path | None = None,
         reject_threshold: float = 0.3,
+        score_gate_enabled: bool = True,
         live_output: OutputPort | None = None,
         allow_test_provider: bool = False,
     ) -> None:
@@ -57,6 +58,7 @@ class Pipeline:
         self.prompt_registry = prompt_registry or PromptRegistry.default(project_root)
         self.staging_root = Path(staging_root or queue_store.db_path.parent / "staging")
         self.reject_threshold = reject_threshold
+        self.score_gate_enabled = score_gate_enabled
         self._live_output = live_output
         self.allow_test_provider = allow_test_provider
         self.dry_run_output = DryRunOutputPort()
@@ -200,7 +202,8 @@ class Pipeline:
                 parallel_results=parallel_results,
             )
 
-        if _should_reject(score_result, self.reject_threshold):
+        score_rejected = _should_reject(score_result, self.reject_threshold)
+        if score_rejected and self.score_gate_enabled:
             error = TypedError(
                 failure_kind=FailureKind.VALIDATION_FAILED,
                 message="Scoring rejected content",
@@ -226,7 +229,13 @@ class Pipeline:
                 parallel_results=parallel_results,
                 error=error,
             )
-        _append_stage(stage_results, "score_gate", detail={"accepted": True})
+        _append_stage(stage_results, "score_gate", detail={
+            "accepted": True,
+            "gate_enabled": self.score_gate_enabled,
+            "forced_extract": score_rejected and not self.score_gate_enabled,
+            "final_score": score_result.final_score,
+            "signal_tier": score_result.signal_tier,
+        })
 
         extraction_result = self._extract_and_parse(
             fetched,

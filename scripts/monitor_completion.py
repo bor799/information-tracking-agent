@@ -15,7 +15,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-DB = str(Path.home() / ".100x_v3" / "queue.db")
+DB = "/Users/murphy/.100x_v3/queue.db"
 MIN_COMPLETE_LINES = 40  # 完整任务的最少行数
 
 

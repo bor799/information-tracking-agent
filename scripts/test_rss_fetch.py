@@ -49,7 +49,7 @@ def _ensure_supported_python() -> None:
         "python3.13",
         "python3.12",
         "python3.11",
-        "/usr/bin/python3",
+        "/opt/miniconda3/bin/python",
     ):
         if not candidate:
             continue

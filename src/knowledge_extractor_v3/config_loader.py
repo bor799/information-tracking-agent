@@ -80,6 +80,12 @@ class PromptsConfig:
 
 
 @dataclass(frozen=True)
+class ScoreGateConfig:
+    enabled: bool = True
+    reject_threshold: float = 0.3
+
+
+@dataclass(frozen=True)
 class SourceConfig:
     name: str = ""
     type: str = ""
@@ -131,18 +137,41 @@ class AgentReachConfig:
 
 
 @dataclass(frozen=True)
+class USAiMarketDailyReportConfig:
+    enabled: bool = False
+    timezone: str = "Asia/Shanghai"
+    schedule_time: str = "08:03"
+    system_dir: str = "~/Documents/Obsidian Vault/信息源/日报系统"
+    stock_context_root: str = (
+        "~/Documents/Obsidian Vault/兴趣领域/股票投资/AI周期探索/0_总览"
+    )
+    output_category: str = "日报"
+    lookback_hours: int = 72
+    non_trading_day_mode: str = "review"
+
+
+@dataclass(frozen=True)
+class DailyReportsConfig:
+    us_ai_market: USAiMarketDailyReportConfig = field(
+        default_factory=USAiMarketDailyReportConfig
+    )
+
+
+@dataclass(frozen=True)
 class V3Config:
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
     live: LiveConfig = field(default_factory=LiveConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
     outputs: OutputsConfig = field(default_factory=OutputsConfig)
     prompts: PromptsConfig = field(default_factory=PromptsConfig)
+    score_gate: ScoreGateConfig = field(default_factory=ScoreGateConfig)
     sources: list[SourceConfig] = field(default_factory=list)
     sources_files: list[str] = field(default_factory=list)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     worker: WorkerConfig = field(default_factory=WorkerConfig)
     telegram_bot: TelegramBotConfig = field(default_factory=TelegramBotConfig)
     agent_reach: AgentReachConfig = field(default_factory=AgentReachConfig)
+    daily_reports: DailyReportsConfig = field(default_factory=DailyReportsConfig)
 
 
 # ---------------------------------------------------------------------------
@@ -508,6 +537,27 @@ def _build_prompts(raw: dict[str, object]) -> PromptsConfig:
     )
 
 
+def _normalize_reject_threshold(value: object, *, default: float = 0.3) -> float:
+    try:
+        threshold = float(value)
+    except (TypeError, ValueError):
+        return default
+    if threshold > 1:
+        threshold = threshold / 10
+    return max(0.0, min(1.0, threshold))
+
+
+def _build_score_gate(raw: dict[str, object], legacy_score_threshold: object = None) -> ScoreGateConfig:
+    threshold_raw = raw.get(
+        "reject_threshold",
+        raw.get("threshold", legacy_score_threshold if legacy_score_threshold is not None else 0.3),
+    )
+    return ScoreGateConfig(
+        enabled=bool(raw.get("enabled", True)),
+        reject_threshold=_normalize_reject_threshold(threshold_raw),
+    )
+
+
 def _build_sources(raw: list[object]) -> list[SourceConfig]:
     if not isinstance(raw, list):
         return []
@@ -583,6 +633,37 @@ def _build_agent_reach(raw: dict[str, object]) -> AgentReachConfig:
     )
 
 
+def _build_us_ai_market_daily_report(
+    raw: dict[str, object],
+) -> USAiMarketDailyReportConfig:
+    return USAiMarketDailyReportConfig(
+        enabled=bool(raw.get("enabled", False)),
+        timezone=str(raw.get("timezone", "Asia/Shanghai")),
+        schedule_time=str(raw.get("schedule_time", "08:03")),
+        system_dir=str(
+            raw.get("system_dir", "~/Documents/Obsidian Vault/信息源/日报系统")
+        ),
+        stock_context_root=str(
+            raw.get(
+                "stock_context_root",
+                "~/Documents/Obsidian Vault/兴趣领域/股票投资/AI周期探索/0_总览",
+            )
+        ),
+        output_category=str(raw.get("output_category", "日报")),
+        lookback_hours=int(raw.get("lookback_hours", 72)),
+        non_trading_day_mode=str(raw.get("non_trading_day_mode", "review")),
+    )
+
+
+def _build_daily_reports(raw: dict[str, object]) -> DailyReportsConfig:
+    us_ai_market_raw = raw.get("us_ai_market", {})
+    if not isinstance(us_ai_market_raw, dict):
+        us_ai_market_raw = {}
+    return DailyReportsConfig(
+        us_ai_market=_build_us_ai_market_daily_report(us_ai_market_raw)
+    )
+
+
 # ---------------------------------------------------------------------------
 # ConfigLoader
 # ---------------------------------------------------------------------------
@@ -621,12 +702,14 @@ class ConfigLoader:
             llm=_build_llm(self._section(raw, "llm")),
             outputs=_build_outputs(self._section(raw, "outputs")),
             prompts=_build_prompts(self._section(raw, "prompts")),
+            score_gate=_build_score_gate(self._section(raw, "score_gate"), raw.get("score_threshold")),
             sources=_build_sources(raw.get("sources", [])),  # type: ignore[arg-type]
             sources_files=_build_sources_files(raw.get("sources_files", [])),
             scheduler=_build_scheduler(self._section(raw, "scheduler")),
             worker=_build_worker(self._section(raw, "worker")),
             telegram_bot=_build_telegram_bot(self._section(raw, "telegram_bot")),
             agent_reach=_build_agent_reach(self._section(raw, "agent_reach")),
+            daily_reports=_build_daily_reports(self._section(raw, "daily_reports")),
         )
 
     def resolve_env(self, env_var_name: str) -> str:

@@ -342,6 +342,8 @@ class QueueWorker:
             llm_provider=self._llm,
             prompt_registry=self._prompts,
             staging_root=self._queue.db_path.parent / "staging",
+            reject_threshold=self._config.score_gate.reject_threshold,
+            score_gate_enabled=self._config.score_gate.enabled,
             live_output=None,  # Will be set by mode if needed
         )
 
