@@ -10,7 +10,7 @@ from datetime import timezone
 from pathlib import Path
 
 UTC = timezone.utc
-DB_PATH = Path.home() / ".100x_v3" / "queue.db"
+DB_PATH = Path("/Users/murphy/.100x_v3/queue.db")
 
 
 def utc_now() -> str:

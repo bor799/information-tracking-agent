@@ -26,6 +26,7 @@ from knowledge_extractor_v3.config_loader import (
     V3Config,
     LiveConfig,
     RuntimeConfig,
+    ScoreGateConfig,
     WorkerConfig as V3WorkerConfig,
 )
 from knowledge_extractor_v3.models import RuntimeMode
@@ -192,6 +193,38 @@ def test_worker_run_once_successful_task():
         updated = queue_store.get_task(task.id)
         assert updated.status == QueueStatus.DONE
         assert updated.output_path != ""
+
+
+def test_worker_force_extracts_score_reject_when_score_gate_disabled():
+    """Worker must pass score_gate.enabled=false through to Pipeline."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        state_root = Path(tmpdir)
+        config = make_test_config(state_root)
+        config = V3Config(
+            runtime=config.runtime,
+            live=config.live,
+            worker=config.worker,
+            agent_reach=config.agent_reach,
+            score_gate=ScoreGateConfig(enabled=False),
+        )
+        queue_store = QueueStore(state_root / "queue.db")
+        task = queue_store.enqueue("fixture://low_quality", source="test")
+
+        worker = QueueWorker(
+            config=config,
+            queue_store=queue_store,
+            fetcher=FixtureFetcher(),
+            worker_config=WorkerConfig(batch_size=10),
+        )
+
+        result = worker.run_once()
+
+        assert result.tasks_processed == 1
+        assert result.tasks_succeeded == 1
+        updated = queue_store.get_task(task.id)
+        assert updated.status == QueueStatus.DONE
+        assert updated.output_path
+        assert Path(updated.output_path).exists()
 
 
 def test_worker_notifies_telegram_reply_chat_on_terminal_failure():

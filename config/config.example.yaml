@@ -40,6 +40,17 @@ outputs:
   telegram_admin_chat_id_env: "TELEGRAM_ADMIN_CHAT_ID"
   telegram_enabled: true
 
+daily_reports:
+  us_ai_market:
+    enabled: false
+    timezone: "Asia/Shanghai"
+    schedule_time: "08:03"
+    system_dir: "~/Documents/Obsidian Vault/信息源/日报系统"
+    stock_context_root: "~/Documents/Obsidian Vault/兴趣领域/股票投资/AI周期探索/0_总览"
+    output_category: "日报"
+    lookback_hours: 72
+    non_trading_day_mode: "review"
+
 prompts:
   registry: "prompts/registry.json"
   active_bundle: "v2_stable_cn"
@@ -51,6 +62,9 @@ prompts:
   scoring: "prompts/primary_market_scoring.md"
   extraction: "prompts/primary_market_extraction.md"
   telegram_brief: "prompts/telegram_brief.md"
+
+score_gate:
+  enabled: true
 
 sources: []
 

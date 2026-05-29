@@ -17,8 +17,3 @@ dist/
 build/
 *.egg-info/
 .DS_Store
-.test-staging-*/
-
-# Private / internal directories (never publish)
-ai-reading/
-.codepilot-uploads/

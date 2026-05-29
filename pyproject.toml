@@ -3,31 +3,13 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "information-tracking-agent"
+name = "100x-knowledge-extractor-v3"
 version = "0.1.0"
-description = "Multi-platform knowledge extraction agent with LLM scoring — YouTube, Twitter/X, RSS, web search → Obsidian + Telegram"
-readme = "README.md"
-license = "MIT"
+description = "100X Knowledge Extractor V3 for primary-market intelligence briefs"
 requires-python = ">=3.11,<3.14"
-authors = [{ name = "bor799" }]
-keywords = ["knowledge-extraction", "llm", "obsidian", "telegram", "rss", "web-search"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Internet :: WWW/HTTP",
-]
 dependencies = [
     "pyyaml>=6.0",
 ]
-
-[project.urls]
-Homepage = "https://github.com/bor799/information-tracking-agent"
-Repository = "https://github.com/bor799/information-tracking-agent"
-Issues = "https://github.com/bor799/information-tracking-agent/issues"
 
 [project.optional-dependencies]
 search = [
@@ -40,7 +22,8 @@ dev = [
 ]
 
 [project.scripts]
-information-tracking-agent = "knowledge_extractor_v3.shadow_runner:main"
+100x-v3-shadow-run = "knowledge_extractor_v3.shadow_runner:main"
+100x-v3-us-ai-daily = "knowledge_extractor_v3.daily_reports.runner:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

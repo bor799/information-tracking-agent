@@ -14,6 +14,7 @@ from knowledge_extractor_v3.config_loader import (
     LiveConfig,
     OutputsConfig,
     SchedulerConfig,
+    ScoreGateConfig,
     V3Config,
     WorkerConfig,
     _deep_merge,
@@ -218,6 +219,9 @@ class TestConfigLoader:
         assert config.worker.batch_size == 10
         assert config.worker.poll_interval_seconds == 30
         assert config.telegram_bot.enabled is False
+        assert isinstance(config.score_gate, ScoreGateConfig)
+        assert config.score_gate.enabled is True
+        assert config.score_gate.reject_threshold == 0.3
         assert isinstance(config.sources, list)
 
     def test_config_path_used_raises_before_load(self):
@@ -334,6 +338,31 @@ class TestConfigLoader:
         assert config.agent_reach.enabled_channels == ["youtube", "twitter"]
         assert config.agent_reach.fallback_to_jina is False
         assert config.agent_reach.proxy == "http://127.0.0.1:7890"
+
+    def test_score_gate_section_loaded(self, tmp_path):
+        project = _make_local_config(tmp_path, "\n".join([
+            "runtime:",
+            "  state_root: \"/tmp/state\"",
+            "score_gate:",
+            "  enabled: false",
+            "  reject_threshold: 0.6",
+        ]))
+
+        config = ConfigLoader(project_root=project).load()
+
+        assert config.score_gate.enabled is False
+        assert config.score_gate.reject_threshold == 0.6
+
+    def test_legacy_score_threshold_is_normalized_to_final_score_scale(self, tmp_path):
+        project = _make_local_config(tmp_path, "\n".join([
+            "runtime:",
+            "  state_root: \"/tmp/state\"",
+            "score_threshold: 6.0",
+        ]))
+
+        config = ConfigLoader(project_root=project).load()
+
+        assert config.score_gate.reject_threshold == 0.6
 
     def test_external_sources_file_is_loaded_and_deduped(self, tmp_path):
         project = _make_local_config(tmp_path, "\n".join([
